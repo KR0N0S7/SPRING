@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layout.html}">
+<meta charset="UTF-8">
+<div layout:fragment="content">
+<div class="alert alert-primary" th:if="${mensagem != null}"
+		th:text="${mensagem}"></div>
+
+	<div class="card">
+		<div class="card-header">
+			<p class="text-primary">Novo Cadastro</p>
+		</div>
+		<div>
+			<div class="card-body">
+				<form class="row g-3" method="POST" th:object="${cadastro}"
+					th:action="@{/cadastro/form}">
+					<input type="hidden" th:field="*{id}"></input>
+
+					<div class="col-12">
+						<label for="nome" class="form-label">Nome </label> <input
+							type="text" class="form-control" th:field="*{nome}"
+							placeholder="Nome Completo">
+					</div>
+					
+					<div class="col-4">
+						<label for="telefone" class="form-label">Telefone </label> <input
+							type="number" class="form-control" th:field="*{telefone}"
+							placeholder="(11) 0000-0000">
+					</div>
+					
+					<div class="col-4">
+						<label for="email" class="form-label">E-Mail </label> <input
+							type="text" class="form-control" th:field="*{email}"
+							placeholder="exemplo@exemplo.com">
+					</div>
+					
+					<div class="col-4">
+						<label for="acao" class="form-label">Ações </label> <input
+							type="text" class="form-control" th:field="*{acoes}"
+							placeholder="Ação">
+					</div>
+					
+
+				<div class="col-md-2">
+					<button type="submit" class="btn btn-primary">Salvar
+						Cadastro</button>
+				</div>
+
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+</html>
