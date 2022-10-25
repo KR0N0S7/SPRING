@@ -14,10 +14,10 @@ public class Cadastro {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	
+	private String acoes;
+	private String email;
 	private String nome;
 	private Integer telefone;
-	private String email;
-	private String acoes;
 	
 	public Long getId() {	return id;	}
 	public void setId(Long id) {	this.id = id;	}
