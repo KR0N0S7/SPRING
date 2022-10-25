@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layout.html}">
+<meta charset="UTF-8">
+<div layout:fragment="content">
+
+	<div class="alert alert-primary" th:if="${#lists.isEmpty(lista)}">
+		Nenhum cadastro encontrado</div>
+	<div class="alert alert-primary" th:if="${mensagem != null}"
+		th:text="${mensagem}"></div>
+
+	<div th:if="${not #lists.isEmpty(lista)}">
+
+		<table class="table table-striped">
+
+			<thead>
+				<tr>
+					<th>Id</th>
+					<th>Nome</th>
+					<th>Telefone</th>
+					<th>E-Mail</th>
+					<th>Ações</th>
+					<th>Opções</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr th:each="cadastro : ${lista}">
+					<td th:text="${cadastro.id}"></td>
+					<td th:text="${cadastro.nome}"></td>
+					<td th:text="${cadastro.telefone}"></td>
+					<td th:text="${cadastro.email}"></td>
+					<td th:text="${cadastro.acoes}"></td>
+					<td width="auto"><a class="btn btn-primary btn-sm"
+						th:href="@{/cadastro/form(id=${cadastro.id})}">Editar</a> <a
+						class="btn btn-primary btn-sm"
+						th:href="@{/cadastro/excluir(id=${cadastro.id})}"
+						onclick="return confirm('Você realmente deseja excluir o cadastro?')">Excluir</a></td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</div>
+</html>
