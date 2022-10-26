@@ -13,7 +13,7 @@ import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 
-import br.com.agenda.connection.ConexaoDB;
+import br.com.agenda.connection.ConnectionPool;
 import br.com.agenda.dao.annotations.ChaveEstrangeira;
 import br.com.agenda.dao.annotations.Coluna;
 import br.com.agenda.dao.annotations.Transiente;
@@ -70,7 +70,8 @@ public class AbstractDAO implements InterfaceDAO {
 		sql = sql.substring(0, sql.length() - 2) + ")";
 		sql += parteFinalSQL.substring(0, parteFinalSQL.length() - 2) + ")";
 		
-		Connection conexao = ConexaoDB.getConexao();
+//		Connection conexao = ConexaoDB.getConexao();
+		Connection conexao = ConnectionPool.getConnection();
 		PreparedStatement psql = conexao.prepareStatement(sql);
 		
 		int i = 1;
@@ -146,7 +147,8 @@ public class AbstractDAO implements InterfaceDAO {
 		sql = sql + parteFinal;
 		sql = sql.substring(0, sql.length() - 2) + " WHERE id=" + id;
 				
-		Connection conexao = ConexaoDB.getConexao();
+//		Connection conexao = ConexaoDB.getConexao();
+		Connection conexao = ConnectionPool.getConnection();
 		PreparedStatement psql = conexao.prepareStatement(sql);
 		
 		int i = 1;
@@ -183,7 +185,8 @@ public class AbstractDAO implements InterfaceDAO {
 		
 		String sql = "DELETE FROM " + nomeTabela + " WHERE id=" + id;
 		
-		Connection conexao = ConexaoDB.getConexao();
+//		Connection conexao = ConexaoDB.getConexao();
+		Connection conexao = ConnectionPool.getConnection();
 		PreparedStatement psql = conexao.prepareStatement(sql);
 		
 //		Field id = objeto
@@ -213,7 +216,8 @@ public class AbstractDAO implements InterfaceDAO {
 		
 		String sql = "SELECT * FROM " + nomeTabela;
 		
-		Connection conexao = ConexaoDB.getConexao();
+//		Connection conexao = ConexaoDB.getConexao();
+		Connection conexao = ConnectionPool.getConnection();
 		PreparedStatement psql = conexao.prepareStatement(sql);
 		
 		ResultSet resultado = psql.executeQuery();
@@ -248,7 +252,8 @@ public class AbstractDAO implements InterfaceDAO {
 		
 		String sql = "SELECT * FROM " + nomeTabela + " WHERE id=" + id;
  
-		Connection conexao = ConexaoDB.getConexao();
+//		Connection conexao = ConexaoDB.getConexao();
+		Connection conexao = ConnectionPool.getConnection();
 		PreparedStatement psql = conexao.prepareStatement(sql);
 				
 		ResultSet resultado = psql.executeQuery();
@@ -281,7 +286,8 @@ public class AbstractDAO implements InterfaceDAO {
 		
 		String sql = "SELECT MAX(id) as numero FROM " + nomeTabela;
 		
-		Connection conexao = ConexaoDB.getConexao();
+//		Connection conexao = ConexaoDB.getConexao();
+		Connection conexao = ConnectionPool.getConnection();
 		PreparedStatement psql = conexao.prepareStatement(sql);
 				
 		ResultSet resultado = psql.executeQuery();
@@ -296,104 +302,14 @@ public class AbstractDAO implements InterfaceDAO {
 		
 		return numeroId;
 	}
-	
-	public void salvarObjectHandler(Object objeto) throws SQLException {
 		
-		String nomeTabela = NameGeneratorSQL.gerarNomeTabelaSQL(objeto);
-		
-		String sql = "INSERT INTO " + nomeTabela;
-		sql += "(";
-		
-		String parteFinalSQL = " VALUES(";
-		Field[] atributos = objeto.getClass().getDeclaredFields();
-		for (Field atributo : atributos) {
-			Transiente transiente = atributo.getDeclaredAnnotation(Transiente.class);
-			if (null != transiente) {
-				continue;
-			}
-			Id id = atributo.getDeclaredAnnotation(Id.class);
-			if (null == id) {
-				ManyToMany mTm = atributo.getDeclaredAnnotation(ManyToMany.class);
-				OneToMany oTm = atributo.getDeclaredAnnotation(OneToMany.class);
-				
-				if (mTm == null && oTm == null) {
-					String nomeColuna = atributo
-							.getName()
-							.toLowerCase();
-					
-					Coluna coluna = atributo.getDeclaredAnnotation(Coluna.class);
-					if (null != coluna && !coluna.nome().equals("_SEM_NOME_")) {
-						nomeColuna = coluna.nome();
-					}
-					
-					Column column = atributo.getDeclaredAnnotation(Column.class);
-					if (column != null) {
-						nomeColuna = column.name();
-					}
-					
-					ChaveEstrangeira chaveEstrangeira = atributo.getDeclaredAnnotation(ChaveEstrangeira.class);
-					if (chaveEstrangeira != null) {
-						nomeColuna += "_id";
-					}
-					
-					sql +=  nomeColuna + ", ";
-				parteFinalSQL += "?, ";
-				}
-			}
-		}
-		sql = sql.substring(0, sql.length() - 2) + ")";
-		sql += parteFinalSQL.substring(0, parteFinalSQL.length() - 2) + ")";
-		
-		Connection conexao = ConexaoDB.getConexao();
-		PreparedStatement psql = conexao.prepareStatement(sql);
-		
-		int i = 1;
-		for (Field atributo : atributos) {
-			Transiente transiente = atributo.getDeclaredAnnotation(Transiente.class);
-			if (null != transiente) {
-				continue;
-			}
-			ManyToMany mTm = atributo.getDeclaredAnnotation(ManyToMany.class);
-			OneToMany oTm = atributo.getDeclaredAnnotation(OneToMany.class);
-			
-			if (mTm == null && oTm == null) {
-				Id id = atributo.getDeclaredAnnotation(Id.class);
-				if (null == id) {
-					atributo.setAccessible(true);
-					
-					ChaveEstrangeira chaveEstrangeira = atributo.getDeclaredAnnotation(ChaveEstrangeira.class);
-					if (chaveEstrangeira != null) {
-						String nomeAtributo = atributo.getName();
-						Long ultimaEntrada = (Long) AbstractDAO.consultarUltimaEntrada(nomeAtributo);
-						
-						try {
-							psql.setObject(i++, ultimaEntrada);
-						} catch (SecurityException | SQLException e) {
-							e.printStackTrace();
-						}
-					} else {
-						
-						try {
-							psql.setObject(i++, atributo.get(objeto));
-						} catch (IllegalArgumentException | IllegalAccessException | SQLException e) {
-							throw new RuntimeException();
-						}
-					}
-					
-				}
-			}
-		}
-		psql.execute();
-		conexao.close();
-		System.out.println(sql);
-	}
-	
 	public static Object listarObjetoEspecifico(String coluna, String tabela) throws SQLException {
 		
 		
 		String sql = "SELECT " + coluna + " FROM " + tabela;
 		
-		Connection conexao = ConexaoDB.getConexao();
+//		Connection conexao = ConexaoDB.getConexao();
+		Connection conexao = ConnectionPool.getConnection();
 		PreparedStatement psql = conexao.prepareStatement(sql);
 		
 		ResultSet resultado = psql.executeQuery();
